@@ -1,0 +1,10 @@
+# Python library
+pyenv/
+
+
+# Sublime text files
+*.sublime-*
+
+
+# inet specs
+spec/*.md
