@@ -1,6 +1,8 @@
 # Python library
 pyenv/
 
+# Python compiled
+*.pyc
 
 # Sublime text files
 *.sublime-*
