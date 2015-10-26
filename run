@@ -1,6 +1,0 @@
-#! /bin/bash
-
-alias dns="screen -dmS dns python dns/dns.py"
-alias mserver="screen -S server python server/server.py"
-alias client="python client/client.py"
-alias sswitch="screen -r"
