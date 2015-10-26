@@ -1,1 +1,3 @@
 include requirements.txt
+include CHANGED.md
+include README.md

@@ -13,6 +13,13 @@ def spawn_server(service, handler):
     return gevent.spawn(__server, service, handler)
 
 
+def worker(service):
+    def decorator(f):
+        spawn_server(service, f)
+        return f
+    return decorator
+
+
 def __server(service, handler):
     logger = logging.getLogger('inet.server.%s' % service)
     backend = endpoints.init(service)

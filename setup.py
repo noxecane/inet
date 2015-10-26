@@ -3,13 +3,12 @@ from pip.req import parse_requirements
 
 install_reqs = parse_requirements('requirements.txt', session=False)
 reqs = [str(ir.req) for ir in install_reqs]
-
 setup(
     # Application name:
     name="inet",
 
     # Version number (initial):
-    version="0.1.1",
+    version="0.1.2",
 
     # Application author details:
     author="Arewa Olakunle",
@@ -27,7 +26,7 @@ setup(
     #
     # license="LICENSE.txt",
     description="Micro service messaging using zeromq",
-    long_description=open("README.txt").read(),
+    long_description=open("README.md").read(),
 
     # Dependent packages (distributions)
     install_requires=reqs,
