@@ -1,13 +1,7 @@
 import logging
-import zmq.green as zmq
-
 from . import (
     sockets, endpoints,
     message
-)
-from .constants import (
-    INET_COMMAND_LOOKUP, INET_STATUS_OK,
-    INET_STATUS_NOT_FOUND
 )
 from .errors import ConnectionError
 
@@ -22,7 +16,9 @@ def request(service, req):
         raise ConnectionError('No server is available for %s' % service)
 
     socket, poller = sockets.create_reliable_req_socket()
+    logger.debug('Connecting to server at %s', frontend['address'])
     socket.connect(frontend['address'])
+    logger.debug('Sending request......')
     socket.send(req.raw())
     return message.from_raw(sockets.reliably_recv_req(socket, poller, frontend))
 

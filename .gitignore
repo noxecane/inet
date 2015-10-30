@@ -12,6 +12,8 @@ spec/*.md
 
 # distribution
 dist/
+build
+inet*.egg-info
 
 # Some snippet
 size.sql

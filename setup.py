@@ -1,33 +1,40 @@
-from distutils.core import setup
+"""Micro service communication library."""
 from pip.req import parse_requirements
+from setuptools import setup
 
-install_reqs = parse_requirements('requirements.txt', session=False)
-reqs = [str(ir.req) for ir in install_reqs]
+
+dependencies = parse_requirements('requirements.txt', session=False)
+reqs = [str(ir.req) for ir in dependencies]
 setup(
-    # Application name:
-    name="inet",
-
-    # Version number (initial):
-    version="0.1.2",
-
-    # Application author details:
-    author="Arewa Olakunle",
-    author_email="arewa.olakunle@gmail.com",
-
-    # Packages
+    name='inet',
+    version='0.1.2',
+    url='https://github.com/danceasarxx/inet',
+    license='BSD',
+    author='Arewa Olakunle',
+    author_email='arewa.olakunle@gmail.com',
     packages=["inet"],
-
-    # Include additional files into the package
     include_package_data=True,
-
-    # Details
-    url="http://pypi.python.org/pypi/inet_v011/",
-
-    #
-    # license="LICENSE.txt",
-    description="Micro service messaging using zeromq",
+    zip_safe=False,
+    platforms='any',
+    install_requires=dependencies,
     long_description=open("README.md").read(),
-
-    # Dependent packages (distributions)
-    install_requires=reqs,
+    classifiers=[
+        # As from http://pypi.python.org/pypi?%3Aaction=list_classifiers
+        # 'Development Status :: 1 - Planning',
+        # 'Development Status :: 2 - Pre-Alpha',
+        # 'Development Status :: 3 - Alpha',
+        'Development Status :: 4 - Beta',
+        # 'Development Status :: 5 - Production/Stable',
+        # 'Development Status :: 6 - Mature',
+        # 'Development Status :: 7 - Inactive',
+        'Environment :: Console',
+        'Intended Audience :: Developers',
+        'License :: OSI Approved :: BSD License',
+        'Operating System :: POSIX',
+        'Operating System :: Unix',
+        'Programming Language :: Python',
+        'Programming Language :: Python :: 2',
+        'Programming Language :: Python :: 3',
+        'Topic :: Software Development :: Libraries :: Python Modules',
+    ]
 )
