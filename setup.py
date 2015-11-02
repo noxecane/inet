@@ -7,7 +7,7 @@ dependencies = parse_requirements('requirements.txt', session=False)
 reqs = [str(ir.req) for ir in dependencies]
 setup(
     name='inet',
-    version='0.1.2',
+    version='0.2.0',
     url='https://github.com/danceasarxx/inet',
     license='BSD',
     author='Arewa Olakunle',
@@ -18,6 +18,12 @@ setup(
     platforms='any',
     install_requires=dependencies,
     long_description=open("README.md").read(),
+    entry_points={
+        'console_scripts': [
+            'inetserver = inet.inetserver:main',
+            'inetproxy = inet.proxy:main',
+        ],
+    },
     classifiers=[
         # As from http://pypi.python.org/pypi?%3Aaction=list_classifiers
         # 'Development Status :: 1 - Planning',

@@ -1,31 +1,41 @@
 import logging
-from . import (
-    sockets, endpoints,
-    message
-)
-from .errors import ConnectionError
+
+from .router import Router
+from .sockets import ReliableSocket
 
 
 logger = logging.getLogger('inet.client')
 
 
-def request(service, req):
-    frontend = endpoints.query(service)
+class Client(object):
+    """Represents an actual client."""
 
-    if frontend is None:
-        raise ConnectionError('No server is available for %s' % service)
+    def __init__(self, proxy_client):
+        self.socket = ReliableSocket()
+        self.proxy = proxy_client
 
-    socket, poller = sockets.create_reliable_req_socket()
-    logger.debug('Connecting to server at %s', frontend['address'])
-    socket.connect(frontend['address'])
-    logger.debug('Sending request......')
-    socket.send(req.raw())
-    return message.from_raw(sockets.reliably_recv_req(socket, poller, frontend))
+    def get(self, url, data=None):
+        """
+        A magic function(kind of) that hides the process
+        needed to make a request
+        """
+        service, req = Router.transform(url)
+        if data is not None:
+            req.data = data
+        return self.sendrequest(service, req)
 
+    def sendrequest(self, service, req):
+        """
+        Does the actual sending, doesn't bother to
+        catch any errors involved with sending the request
+        though
+        """
+        address = self.proxy.query(service)
 
-def get(service, data):
-    if isinstance(data, dict):
-        req = message.message({'method': 'get'}, data)
-        return request(service, req)
-    else:
-        raise ValueError('Expecting a dict found %s' % type(data))
+        logger.debug('Connecting to server at %s', address)
+        self.socket.address = address
+        self.socket.connect()
+
+        logger.debug('Sending request......')
+        self.socket.sendmsg(req)
+        return self.socket.recvmsg()

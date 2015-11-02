@@ -1,23 +1,37 @@
+import click
+import gipc
 import logging
 import zmq.green as zmq
 
 
-def mediate(pipein):
-    balancer_info = pipein.get()
+def fork(service, frontend, backend):
+    """Creates a proxy"""
+    with gipc.pipe():
+        gipc.start_process(target=mediate, args=(service, frontend, backend))
+
+
+@click.command()
+@click.option('--service')
+@click.option('--frontend')
+@click.option('--backend')
+def main(service, frontend, backend):
+    mediate(service, frontend, backend)
+
+
+def mediate(service, front, back):
     context = zmq.Context()
-    logger = logging.getLogger('inet.loadbalancer.%s' % balancer_info['service'])
+    logger = logging.getLogger('inet.proxy.%s' % service)
 
     frontend = context.socket(zmq.ROUTER)
     backend = context.socket(zmq.DEALER)
-    frontend.bind(balancer_info['frontend'])
-    backend.bind(balancer_info['backend'])
+    frontend.bind(front)
+    backend.bind(back)
 
     poller = zmq.Poller()
     poller.register(frontend, zmq.POLLIN)
     poller.register(backend, zmq.POLLIN)
 
-    logger.debug('Starting load balancer at %s in and %s out',
-                 balancer_info['frontend'], balancer_info['backend'])
+    logger.debug('Starting proxy %s => %s', front, back)
 
     while True:
         events = dict(poller.poll())

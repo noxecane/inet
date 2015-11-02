@@ -1,5 +1,12 @@
-from .. import client
+import logging
+from inet.inetclient import InetClient
+from inet.client import Client
 
+logging.basicConfig(level=logging.DEBUG)
 
-resp = client.get('user', {'message': 'ping'})
-assert resp.data('message') == 'pong'
+proxy = InetClient('tcp://127.0.0.1:3014')
+client = Client(proxy)
+
+resp = client.get('testservice://hello/world')
+assert resp.meta['status'] == 200
+assert resp.data['greeting'] == 'World'

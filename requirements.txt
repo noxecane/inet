@@ -1,6 +1,8 @@
+click==5.1
 gevent==1.1b6
 gipc==0.6.0
 greenlet==0.4.9
+-e git+git@gitlab.com:danceasarxx/inet.git@7bb4d0c2976a23f8685ea50f3ef80b88ae15158d#egg=inet-master
 pyzmq==14.7.0
 wheel==0.24.0
 zmq==0.0.0
