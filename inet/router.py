@@ -7,16 +7,16 @@ class Router(object):
         self.routes = {}
 
     def register(self, path, f):
-        """
-        Registers a function for a specific route. It only
-        allows one function of each route. So registering a route
-        replaces the former handler
+        """Register a function for a specific route.
+
+        It only allows one function of each route. So registering a route
+        replaces the former handler.
         """
         self.routes[path] = f
 
     def route(self, req):
-        """
-        Chooses the function to handle a :class:message.`_Message`.
+        """Choose the function to handle a :class:message.`_Message`.
+
         It returns None if none was found and false if the message
         doesn't expect routing.
         """
@@ -31,8 +31,8 @@ class Router(object):
 
     @classmethod
     def transform(cls, url):
-        """
-        Extract the service and its path from a url.
+        """Extract the service and its path from a url.
+
         It actually creates a message in the process as it
         must be able to route such message
         """

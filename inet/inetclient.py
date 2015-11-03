@@ -1,6 +1,6 @@
 import logging
 
-from .errors import ConnectionError, RegisterationError
+from .errors import ConnectionError
 from .sockets import ReliableSocket
 from .router import Router
 
@@ -9,7 +9,8 @@ logger = logging.getLogger('inet.names.client')
 
 
 class InetClient(object):
-    """Link to the Inet server"""
+
+    """Link to the Inet server."""
 
     def __init__(self, address):
         self.address = address
@@ -17,8 +18,8 @@ class InetClient(object):
         self.cache = {}
 
     def query(self, service):
-        """
-        Looks for a service's address in its cache or Inet server.
+        """Look for a service's address in its cache or Inet server.
+
         The cache can never have invalid addresses as Inet registerations
         are permanent.
         """
@@ -46,8 +47,8 @@ class InetClient(object):
             raise ConnectionError('(%d) (%s)' % (resp.meta['status'], resp.data['message']))
 
     def register(self, service, frontend, backend):
-        """
-        Registers a service to the Inet server.
+        """Register a service to the Inet server.
+
         Note that whatever address is returned is permanent.
         """
         self.socket.connect()
@@ -67,7 +68,7 @@ class InetClient(object):
         return resp.data
 
     def fork(self, service, frontend, backend):
-        """Creates a proxy in inet host."""
+        """Create a proxy in inet host."""
         self.socket.connect()
 
         _, req = Router.transform('inet://proxy/fork')
@@ -83,9 +84,7 @@ class InetClient(object):
         self.socket.destroy()
 
     def unregister(self, service):
-        """
-        Removes a service permanently from inet
-        """
+        """Remove a service permanently from inet."""
         self.socket.connect()
 
         logger.debug('Removing %s', service)

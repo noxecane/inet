@@ -7,7 +7,7 @@ dependencies = parse_requirements('requirements.txt', session=False)
 reqs = [str(ir.req) for ir in dependencies]
 setup(
     name='inet',
-    version='0.2.0',
+    version='0.2.1',
     url='https://github.com/danceasarxx/inet',
     license='BSD',
     author='Arewa Olakunle',
@@ -16,7 +16,7 @@ setup(
     include_package_data=True,
     zip_safe=False,
     platforms='any',
-    install_requires=dependencies,
+    install_requires=reqs,
     long_description=open("README.md").read(),
     entry_points={
         'console_scripts': [

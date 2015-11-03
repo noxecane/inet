@@ -4,10 +4,10 @@ import logging
 import zmq.green as zmq
 
 
-def fork(service, frontend, backend):
-    """Creates a proxy"""
+def fork(service, frontend, backend, daemon=False):
+    """Create a proxy."""
     with gipc.pipe():
-        gipc.start_process(target=mediate, args=(service, frontend, backend))
+        gipc.start_process(target=mediate, args=(service, frontend, backend), daemon=daemon)
 
 
 @click.command()

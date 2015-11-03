@@ -4,9 +4,9 @@ import logging
 import zmq.green as zmq
 
 from . import message
-from .sockets import ClientSocket
-from .router import Router
 from .proxy import fork
+from .router import Router
+from .sockets import ClientSocket
 
 
 logger = logging.getLogger('inet.server')
@@ -22,21 +22,21 @@ class Server(object):
         self._workers = []
 
     def route(self, path):
-        """Decorator to smoothen handling different request on the same server"""
+        """Decorator to smoothen handling different request on the same server."""
         def decorator(f):
             self.router.register(path, f)
             return f
         return decorator
 
     def spawnworkers(self, workers=3):
-        """Creates a worker greenlet"""
+        """Create a worker greenlet."""
         logger.debug('Launching %s worker(s) for %s', workers, self.service)
         for _ in range(workers):
             _ = gevent.spawn(ServerWorker(self.service, self.backend, self.router))
             self._workers.append(_)
 
     def loopforever(self):
-        """Blocking function to give the workers time to listen to requests"""
+        """Blocking function to give the workers time to listen to requests."""
         gevent.joinall(self._workers)
 
 
@@ -46,14 +46,14 @@ class RoutableServer(Server):
         super().__init__(service, frontend, backend)
         self.proxy = proxy
 
-    def setup(self, localproxy=False):
-        """Creates the actual server and its proxy."""
+    def setup(self, localproxy=False, daemon=False):
+        """Create the actual server and its proxy."""
         endpoint = self.proxy.register(self.service, self.frontend, self.backend)
 
         # fork a proxy if the proxy type is local
         if localproxy:
             logger.debug('Forking sub-process to proxy worker requests for %s', self.service)
-            fork(self.service, self.frontend, self.backend)
+            fork(self.service, self.frontend, self.backend, daemon)
         elif not endpoint:
             # no need to fork if record exists as the proxy will still be on
             self.proxy.fork(self.service, self.frontend, self.backend)

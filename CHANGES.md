@@ -1,3 +1,10 @@
+0.2.1 (2015-11-03)
+--------------------
+- Solved the issue of dependencies not installing.
+
+- Added support for dameon processes
+
+
 0.2.0 (2015-11-01)
 -------------------
 - Switched to class based clients, servers, sockets and even inet services
