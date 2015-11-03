@@ -1,3 +1,8 @@
+0.2.2 (2015-11-03)
+--------------------
+- Changed CLI interface from click to plac
+
+
 0.2.1 (2015-11-03)
 --------------------
 - Solved the issue of dependencies not installing.

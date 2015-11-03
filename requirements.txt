@@ -1,4 +1,4 @@
-click==5.1
+plac==0.9.1
 gevent==1.1b6
 gipc==0.6.0
 greenlet==0.4.9

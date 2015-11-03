@@ -1,6 +1,6 @@
-import click
 import gipc
 import logging
+import plac
 import zmq.green as zmq
 
 
@@ -10,12 +10,12 @@ def fork(service, frontend, backend, daemon=False):
         gipc.start_process(target=mediate, args=(service, frontend, backend), daemon=daemon)
 
 
-@click.command()
-@click.option('--service')
-@click.option('--frontend')
-@click.option('--backend')
-def main(service, frontend, backend):
-    mediate(service, frontend, backend)
+def main():
+    logging.basicConfig(level=logging.ERROR)
+    try:
+        plac.call(mediate)
+    except KeyboardInterrupt:
+        logging.error('Exiting proxy....')
 
 
 def mediate(service, front, back):

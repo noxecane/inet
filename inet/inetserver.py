@@ -1,5 +1,5 @@
-import click
 import logging
+import plac
 
 from .server import Server
 from .db import Sqlite, sqlite3
@@ -99,9 +99,7 @@ def fork_proxy(req, resp):
     return resp
 
 
-@click.command()
-@click.option('--address', '-a', default='tcp://127.0.0.1:3014')
-def main(address):
+def startserver(address='tcp://127.0.0.1:3014'):
     logging.basicConfig(level=logging.DEBUG)
     server.frontend = address
 
@@ -111,3 +109,11 @@ def main(address):
     # start workers and wait
     server.spawnworkers()
     server.loopforever()
+
+
+def main():
+    logging.basicConfig(level=logging.ERROR)
+    try:
+        plac.call(startserver)
+    except KeyboardInterrupt:
+        logging.error('Exiting server')
