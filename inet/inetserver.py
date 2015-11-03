@@ -1,13 +1,15 @@
 import logging
 import plac
 
-from .server import Server
 from .db import Sqlite, sqlite3
+from .message import _Message
 from .proxy import fork
+from .server import Server
 
 logger = logging.getLogger('inet.service.server')
 server = Server('inet', None, 'ipc:///tmp/inet.inetserver.sock')
 inetdb = Sqlite('inetservices.db')
+forked = []
 
 
 logger.debug('Ensuring data exists in database')
@@ -91,6 +93,13 @@ def unregister(req, resp):
 @server.route('proxy/fork')
 def fork_proxy(req, resp):
     service = req.data['service']
+
+    if service in forked:
+        resp.meta['status'] = 409
+        resp.data['message'] = 'Proxy already forked'
+        return resp
+
+    forked.append(service)
     frontend = req.data['frontend']
     backend = req.data['backend']
 
@@ -99,7 +108,7 @@ def fork_proxy(req, resp):
     return resp
 
 
-def startserver(address='tcp://127.0.0.1:3014'):
+def startserver(address: 'Frontend address of the server'='tcp://127.0.0.1:3014'):
     logging.basicConfig(level=logging.DEBUG)
     server.frontend = address
 

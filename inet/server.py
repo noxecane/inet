@@ -35,8 +35,10 @@ class Server(object):
             _ = gevent.spawn(ServerWorker(self.service, self.backend, self.router))
             self._workers.append(_)
 
-    def loopforever(self):
+    def loopforever(self, workers=3):
         """Blocking function to give the workers time to listen to requests."""
+        if len(self._workers) == 0:
+            self.spawnworkers(workers)
         gevent.joinall(self._workers)
 
 

@@ -1,6 +1,7 @@
 import logging
-from inet.inetclient import InetClient
+
 from inet.client import Client
+from inet.proxy import InetClient
 
 logging.basicConfig(level=logging.DEBUG)
 

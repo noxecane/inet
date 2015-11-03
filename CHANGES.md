@@ -1,3 +1,12 @@
+0.2.3 (2015-11-03)
+--------------------
+- Moved `InetClient` to proxy module.
+
+- Making repeated fork requests to inetserver guarantees a single proxy
+
+- `Server.loopforever` can now spawn servers
+
+
 0.2.2 (2015-11-03)
 --------------------
 - Changed CLI interface from click to plac
