@@ -1,5 +1,5 @@
 import logging
-from inet.inetclient import InetClient
+from inet.proxy import InetClient
 from inet.server import RoutableServer
 
 logging.basicConfig(level=logging.DEBUG)

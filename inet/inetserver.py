@@ -60,7 +60,7 @@ def register(req, resp):
     logger.debug('Creating record for %s', service)
     try:
         inetdb.run('''
-            insert into services (name, frontend, backend)
+            insert into services (name, frontend, backend, forked)
             values (?,?,?,?)''', service, frontend, backend, 0)
     except sqlite3.IntegrityError:
         # we assume only the service is being duplicated

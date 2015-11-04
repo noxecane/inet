@@ -1,4 +1,9 @@
-0.2.3 (2015-11-04)
+0.2.5 (2015-11-04)
+--------------------
+- Fixed registeration issue
+
+
+0.2.4 (2015-11-04)
 --------------------
 - The inet server now restarts all proxies when it starts up
 

@@ -1,5 +1,7 @@
 # inet
 
+**v0.2.4 has bug so you'll have to clone the head**
+
 A simple library built on top of zeromq to enable different python
 programs talk over sockets. It works using three components
 *server*, *name service* and *client*. The main feature(or use) of this
