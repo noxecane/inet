@@ -1,3 +1,10 @@
+0.2.3 (2015-11-04)
+--------------------
+- The inet server now restarts all proxies when it starts up
+
+- The inetserver and proxy are alawys in debug nide
+
+
 0.2.3 (2015-11-03)
 --------------------
 - Moved `InetClient` to proxy module.

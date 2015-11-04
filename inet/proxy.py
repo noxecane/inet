@@ -21,7 +21,7 @@ def fork(service, frontend, backend, daemon=False):
 
 
 def main():
-    logging.basicConfig(level=logging.ERROR)
+    logging.basicConfig(level=logging.DEBUG)
     try:
         plac.call(mediate)
     except KeyboardInterrupt:

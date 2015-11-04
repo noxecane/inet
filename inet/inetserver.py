@@ -2,7 +2,6 @@ import logging
 import plac
 
 from .db import Sqlite, sqlite3
-from .message import _Message
 from .proxy import fork
 from .server import Server
 
@@ -18,7 +17,8 @@ inetdb.run('''create table if not exists services (
     id integer primary key autoincrement,
     name text unique not null,
     frontend text unique not null,
-    backend text unique not null
+    backend text unique not null,
+    forked integer
 );''')
 inetdb.close()
 
@@ -61,7 +61,7 @@ def register(req, resp):
     try:
         inetdb.run('''
             insert into services (name, frontend, backend)
-            values (?,?,?)''', service, frontend, backend)
+            values (?,?,?,?)''', service, frontend, backend, 0)
     except sqlite3.IntegrityError:
         # we assume only the service is being duplicated
         endpoint = inetdb.queryone('''
@@ -92,6 +92,7 @@ def unregister(req, resp):
 
 @server.route('proxy/fork')
 def fork_proxy(req, resp):
+    inetdb.connect()
     service = req.data['service']
 
     if service in forked:
@@ -102,26 +103,35 @@ def fork_proxy(req, resp):
     forked.append(service)
     frontend = req.data['frontend']
     backend = req.data['backend']
+    inetdb.run('update services set forked=? where frontend=? and backend=?',
+               1, frontend, backend)
 
     logger.debug('Creating sub-process to route "%s" requests', service)
     fork(service, frontend, backend)
+    inetdb.close()
     return resp
 
 
-def startserver(address: 'Frontend address of the server'='tcp://127.0.0.1:3014'):
-    logging.basicConfig(level=logging.DEBUG)
+def startserver(address: 'Frontend address of the server'='tcp://127.0.0.1:3014',
+                debug: 'Start server in debug mode'=True):
+    inetdb.connect()
     server.frontend = address
 
     logger.debug('Forking proxy for inet server')
     fork(server.service, server.frontend, server.backend)
 
+    # fork their proxies
+    for service in inetdb.queryall('select * from services where forked=?', 1):
+        fork(service['service'], service['frontend'], service['backend'])
+
     # start workers and wait
     server.spawnworkers()
     server.loopforever()
+    inetdb.close()
 
 
 def main():
-    logging.basicConfig(level=logging.ERROR)
+    logging.basicConfig(level=logging.DEBUG)
     try:
         plac.call(startserver)
     except KeyboardInterrupt:
