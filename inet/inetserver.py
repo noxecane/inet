@@ -122,7 +122,7 @@ def startserver(address: 'Frontend address of the server'='tcp://127.0.0.1:3014'
 
     # fork their proxies
     for service in inetdb.queryall('select * from services where forked=?', 1):
-        fork(service['service'], service['frontend'], service['backend'])
+        fork(service['name'], service['frontend'], service['backend'])
 
     # start workers and wait
     server.spawnworkers()
