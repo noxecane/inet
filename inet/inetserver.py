@@ -7,7 +7,7 @@ from .server import Server
 
 logger = logging.getLogger('inet.service.server')
 server = Server('inet', None, 'ipc:///tmp/inet.inetserver.sock')
-inetdb = Sqlite('inetservices.db')
+inetdb = Sqlite('/tmp/inetservices.db')
 forked = []
 
 
