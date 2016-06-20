@@ -7,7 +7,7 @@ dependencies = parse_requirements('requirements.txt', session=False)
 reqs = [str(ir.req) for ir in dependencies]
 setup(
     name='inet',
-    version='0.2.4',
+    version='0.2.6',
     url='https://github.com/danceasarxx/inet',
     license='BSD',
     author='Arewa Olakunle',
