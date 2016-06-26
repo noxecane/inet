@@ -1,23 +1,15 @@
-# Python library
-pyenv/
-
-# Python compiled
+# Python compile files
 *.pyc
 
-# Sublime text files
-*.sublime-*
+# Project files
+.python-version
+.anaconda
+inet.sublime-*
 
-# inet specs
-spec/*.md
-
-# distribution
+# Builds
+.cache
+*.egg-info
 dist/
-build
-inet*.egg-info
-*.db
+build/
 
-# Some snippet
-size.sql
 
-# TODO
-todo.txt
