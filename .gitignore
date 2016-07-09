@@ -11,5 +11,5 @@ inet.sublime-*
 *.egg-info
 dist/
 build/
-
-
+testcov
+.coverage
