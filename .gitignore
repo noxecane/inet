@@ -1,15 +1,23 @@
 # Python compile files
 *.pyc
 
-# Project files
+# Python Enviroment
 .python-version
-.anaconda
-inet.sublime-*
 
-# Builds
+# Sublime Project files
+.anaconda
+*.sublime-project
+*.sublime-workspace
+
+# Testing files
 .cache
+.coverage
+
+# Python build files
 *.egg-info
 dist/
 build/
-testcov
-.coverage
+
+# Experiments
+experiments/
+
