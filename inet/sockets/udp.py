@@ -1,11 +1,9 @@
 import socket
-import zmq.green as zmq
 
+from inet import POLL_TIMEOUT
 from pyfunk.combinators import curry
 from pyfunk.functors.io import IO
 from pyfunk.functors.task import Task
-
-__poller = zmq.Poller()
 
 
 def create():
@@ -16,11 +14,11 @@ def create():
     return socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
 
 
-def shared(s):
+def same_address(s):
     '''
     Enables this socket bind to an address already bound to another
     socket. This should be used before binding.
-    @sig shared :: UDPSocket -> IO UDPSocket
+    @sig same_address :: UDPSocket -> IO UDPSocket
     '''
     def share_socket():
         s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -28,11 +26,11 @@ def shared(s):
     return IO(share_socket)
 
 
-def broadcast(s):
+def can_broadcast(s):
     '''
     Ask the OS for permission to broadcast. This should be used as soon
     as one creates a socket
-    @sig broadcast :: UDPSocket -> IO UDPSocket
+    @sig can_broadcast :: UDPSocket -> IO UDPSocket
     '''
     def broadcast_socket():
         s.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
@@ -52,27 +50,15 @@ def bind(url, port, s):
     return IO(share_socket)
 
 
-def pollable(s):
-    '''
-    Gives the library the ability to listen for activity on the socket.
-    Must be called to use wait
-    @sig pollable :: UDPSocket -> IO UDPSocket
-    '''
-    def poll_socket():
-        __poller.register(s, zmq.POLLIN)
-        return s
-    return IO(poll_socket)
-
-
 @curry
-def wait(size, interval, s):
+def wait(size, poller, s):
     '''
     Listens for activity on the UDP socket then returns the message
     and the source of such activity.
-    @sig wait :: Int -> Int -> UDPSocket -> Task Str (Str, (Str, Int))
+    @sig wait :: Int -> Poller -> UDPSocket -> Task Str (Str, (Str, Int))
     '''
     def listen(reject, resolve):
-        events = dict(__poller.poll(interval * 1000))
+        events = dict(poller.poll(POLL_TIMEOUT))
         if s.fileno() in events:
             resolve(s.recvfrom(size))
         else:

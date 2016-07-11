@@ -1,13 +1,11 @@
 import json
-import logging
 import zmq.green as zmq
+
+from inet import POLL_TIMEOUT
 from pyfunk.collections import freduce
 from pyfunk.combinators import curry
 from pyfunk.functors.io import IO
 from pyfunk.functors.task import Task
-
-logger = logging.getLogger('inet.socket')
-TIMEOUT = 3000
 
 
 @curry
@@ -116,7 +114,7 @@ def send(poller, socket, data):
     '''
     def task_send(reject, resolve):
         socket.send(bytes(json.dumps(data), 'utf8'))
-        events = dict(poller.poll(TIMEOUT))
+        events = dict(poller.poll(POLL_TIMEOUT))
         if events.get(socket) == zmq.POLLIN:
             resolve(json.loads(socket.recv().decode('utf8')))
         else:

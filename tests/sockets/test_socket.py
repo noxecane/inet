@@ -86,5 +86,4 @@ class TestSockets(InetTestCase):
         for i in range(2000):
             req = dict(id=i)
             resp = sockets.send(self.poller, s1, req)
-            print(i)
             resp.fork(assertError(client), assertFn(lambda res: res == req))
