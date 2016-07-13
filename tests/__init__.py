@@ -28,3 +28,14 @@ class InetTestCase(TestCase):
         while req != 0:
             socket.send(socket.recv())
             req -= 1
+
+    def assertFn(self, f):
+        def fn(res):
+            assert f(res)
+        return fn
+
+    def assertError(self, address):
+        def fn(err):
+            print('Error:', err.format(address=address))
+            assert False
+        return fn

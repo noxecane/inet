@@ -10,19 +10,6 @@ pair = zmq.REQ
 pair2 = zmq.REP
 
 
-def assertFn(f):
-    def fn(res):
-        assert f(res)
-    return fn
-
-
-def assertError(address):
-    def fn(err):
-        print('Error:', err.format(address=address))
-        assert False
-    return fn
-
-
 class TestSockets(InetTestCase):
 
     def test_create(self):
@@ -68,7 +55,7 @@ class TestSockets(InetTestCase):
         gevent.spawn(self.server, server, s2)
         req = dict(id=12)
         resp = sockets.send(self.poller, s1, req)
-        resp.fork(assertError(client), assertFn(lambda res: res == req))
+        resp.fork(self.assertError(client), self.assertFn(lambda res: res == req))
 
     def test_reliable_send(self):
         for i in range(3):
@@ -76,7 +63,7 @@ class TestSockets(InetTestCase):
             sockets.connect(client, s1).chain(sockets.pollable(self.poller)).unsafeIO()
         req = dict(id=12)
         resp = sockets.reliable_send(self.poller, self.sockets, req)
-        resp.fork(assertFn(lambda res: True), assertFn(lambda res: res == req))
+        resp.fork(self.assertFn(lambda res: True), self.assertFn(lambda res: res == req))
 
     def test_multi_send(self):
         s1 = self.socket(pair)
@@ -86,4 +73,4 @@ class TestSockets(InetTestCase):
         for i in range(2000):
             req = dict(id=i)
             resp = sockets.send(self.poller, s1, req)
-            resp.fork(assertError(client), assertFn(lambda res: res == req))
+            resp.fork(self.assertError(client), self.assertFn(lambda res: res == req))
