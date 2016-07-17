@@ -5,6 +5,7 @@
 .python-version
 .anaconda
 inet.sublime-*
+inet/experiments
 
 # Builds
 .cache
