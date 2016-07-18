@@ -6,7 +6,7 @@ from setuptools import setup
 dependencies = parse_requirements('requirements.txt', session=False)
 reqs = [str(ir.req) for ir in dependencies]
 setup(
-    name='inet',
+    name='gakp-inet',
     version='0.2.7',
     url='https://github.com/danceasarxx/inet',
     license='BSD',

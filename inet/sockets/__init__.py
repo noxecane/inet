@@ -1,134 +1,120 @@
-import json
+import logging
 import zmq.green as zmq
-
-from inet import POLL_TIMEOUT
-from pyfunk.collections import freduce
+from inet.errors import ConnectionTimeout
+from inet.sockets.message import encode, decode
 from pyfunk.combinators import curry
-from pyfunk.functors.io import IO
-from pyfunk.functors.task import Task
+
+logger = logging.getLogger('inet.sockets')
+REQ_TIMEOUT = 3000
 
 
 @curry
-def create(context, socktype):
+def create(context, stype):
     '''
-    Create a new socket
-    @sig create :: Context -> Int -> Socket
+    Creates a socket of the given type
+    @sig create :: ZMQContext -> Int -> Socket
     '''
-    return context.socket(socktype)
+    return context.socket(stype)
 
 
-def destroy(socket):
+def destroy(sock):
     '''
-    Shutdown a socket. All messages that are in its queue will be
-    cleared so use carefully.
-    @sig destroy :: Socket -> IO Socket
+    Clears the socket queue then closes the socket. Use this when the socket
+    is no longer needed at all.
+    @sig destroy :: Socket -> Socket
     '''
-    def close_sock():
-        socket.close(0)
-        return socket
-    return IO(close_sock)
-
-
-@curry
-def connect(address, socket):
-    '''
-    Connect a socket to a particular address
-    @sig connect :: Str -> Socket -> IO Socket
-    '''
-    def io_connect():
-        socket.connect(address)
-        return socket
-    return IO(io_connect)
+    sock.setsockopt(zmq.LINGER, 0)
+    sock.close()
+    return sock
 
 
 @curry
-def disconnect(address, socket):
+def connect(address, sock):
     '''
-    Disconnect a socket from a particular address
-    @sig disconnect :: Str -> Socket -> IO Socket
+    Composable version of ZMQ's connect
+    @sig connect :: Address -> Socket -> Socket
     '''
-    def io_disconnect():
-        socket.disconnect(address)
-        return socket
-    return IO(io_disconnect)
+    sock.connect(address)
+    add_str = address if isinstance(address, str) else '%s:%d' % address
+    logger.debug('Connected succsessfully from %s', add_str)
+    return sock
 
 
 @curry
-def bind(address, socket):
+def diconnect(address, sock):
     '''
-    Bind a socket to a particular port or address
-    @sig bind :: Str -> Socket -> IO Socket
+    Composable version of ZMQ's disconnect
+    @sig disconnect :: Address -> Socket -> Socket
     '''
-    def io_bind():
-        socket.bind(address)
-        return socket
-    return IO(io_bind)
+    sock.disconnect(address)
+    add_str = address if isinstance(address, str) else '%s:%d' % address
+    logger.debug('Disconnected succsessfully from %s', add_str)
+    return sock
 
 
 @curry
-def unbind(address, socket):
+def bind(address, sock):
     '''
-    Unbind a socket from a particular port or address
-    @sig unbind :: Str -> Socket -> IO Socket
+    Composable version of ZMQ's bind
+    @sig bind :: Address -> Socket -> Socket
     '''
-    def io_unbind():
-        socket.unbind(address)
-        return socket
-    return IO(io_unbind)
+    sock.bind(address)
+    add_str = address if isinstance(address, str) else '%s:%d' % address
+    logger.debug('Now listening on %s', add_str)
+    return sock
 
 
 @curry
-def pollable(poller, socket):
+def unbind(address, sock):
     '''
-    Registers the socket to the given poller. This should
-    be used when creating a reliable socket.
-    @sig pollable :: Poller -> Socket -> IO Socket
+    Composable version of ZMQ's unbind
+    @sig unbind :: Address -> Socket -> Socket
     '''
-    def io_pollable():
-        poller.register(socket, zmq.POLLIN)
-        return socket
-    return IO(io_pollable)
+    sock.unbind(address)
+    add_str = address if isinstance(address, str) else '%s:%d' % address
+    logger.debug('Stopped listening on %s', add_str)
+    return sock
+
+
+def pollable(sock):
+    '''
+    Creates and registers a ZMQ poller for this socket.
+    @sig pollable :: Socket -> Poller
+    '''
+    poller = zmq.Poller()
+    poller.register(sock, zmq.POLLIN)
+    return poller
 
 
 @curry
-def unpollable(poller, socket):
+def unpollable(poller, sock):
     '''
-    Registers the socket to the given poller. This should
-    be used when cleaning up a socket that was made pollable
-    @sig unpollable :: Poller -> Socket -> IO Socket
+    Composable version of ZMQ Poller's unregister
+    @sig connect :: Poller -> Socket -> Socket
     '''
-    def io_unpollable():
-        poller.unregister(socket)
-        return socket
-    return IO(io_unpollable)
+    poller.unregister(sock)
+    return sock
 
 
 @curry
-def send(poller, socket, data):
+def send(sock, msg):
     '''
-    Performs the two way connection between client and a server
-    socket.The given socket must be pollable and connected for this
-    function to work. The return error string must be formatted with
-    a key value `address`.
-    @sig send :: Poller -> Socket -> Dict -> Task Str Dict
+    Encodes and sends a message. It's basically a proxy to zeromq_send
+    with encoding on-top
+    @sig send :: Socket -> Dict -> Socket
     '''
-    def task_send(reject, resolve):
-        socket.send(bytes(json.dumps(data), 'utf8'))
-        events = dict(poller.poll(POLL_TIMEOUT))
-        if events.get(socket) == zmq.POLLIN:
-            resolve(json.loads(socket.recv().decode('utf8')))
-        else:
-            reject('Connection to server at {address} refused')
-    return Task(task_send)
+    logger.debug('Sending message out to connected peer')
+    sock.send(encode(msg))
 
 
 @curry
-def reliable_send(poller, sockets, data):
+def recv(sock, address):
     '''
-    Works the same way as send except that it can send using another
-    socket when one fails.
-    @sig reliable_send :: Poller -> [Socket] ->  Dict -> Task Str Dict
+    Extends the zmq_recv function by polling within a specified
+    timeout.
+    @sig recv :: Str -> Socket -> Dict
     '''
-    inner_send = send(poller)
-    return freduce(lambda lt, sk: lt.or_else(lambda _: inner_send(sk, data)),
-                   inner_send(sockets[0], data), sockets[1:])
+    if sock.poll(REQ_TIMEOUT) == 1:
+        logger.debug('Received response from peer at %s', address)
+        return decode(sock.recv())
+    raise ConnectionTimeout('Connection to server at %s as timedout' % address)

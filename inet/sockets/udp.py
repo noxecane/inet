@@ -1,69 +1,60 @@
+import logging
 import socket
-
-from inet import POLL_TIMEOUT
+from inet.sockets.message import encode, decode
 from pyfunk.combinators import curry
-from pyfunk.functors.io import IO
-from pyfunk.functors.task import Task
+from pyfunk.monads import Maybe
+
+logger = logging.getLogger('inet.sockets.udp')
+UDP_TIMEOUT = 3000
+UDP_SIZE = 8192
 
 
 def create():
     '''
-    Creates a UDP socket
-    @sig socket :: _ -> UDPSocket
+    Creates a UDP Socket
+    @sig create :: _ -> UDPSocket
     '''
     return socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
 
 
-def same_address(s):
+def broadcast(sock):
     '''
-    Enables this socket bind to an address already bound to another
-    socket. This should be used before binding.
-    @sig same_address :: UDPSocket -> IO UDPSocket
+    Ask for permission to do broadcasts
+    @sig broadcast :: Socket -> Socket
     '''
-    def share_socket():
-        s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        return s
-    return IO(share_socket)
+    sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
+    return sock
 
 
-def can_broadcast(s):
+def reuse(sock):
     '''
-    Ask the OS for permission to broadcast. This should be used as soon
-    as one creates a socket
-    @sig can_broadcast :: UDPSocket -> IO UDPSocket
+    Ask for permission to share the same port with others
+    @sig reuse :: Socket -> Socket
     '''
-    def broadcast_socket():
-        s.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
-        return s
-    return IO(broadcast_socket)
+    sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
+    return sock
 
 
 @curry
-def bind(url, port, s):
+def recv(poller, sock):
     '''
-    Binds a socket to a specific address(url, port combination).
-    @sig bind :: Str -> Int -> UDPSocket -> IO UDPSocket
+    A recv with the ability to timeout. It uses UDP_TIMEOUT
+    for its waiting period and UDP_SIZE for its buffer size
+    @sig recv :: Poller -> Socket -> Maybe ((Str, Int) Dict)
     '''
-    def share_socket():
-        s.bind((url, port))
-        return s
-    return IO(share_socket)
-
-
-# def recv(size, poller, s):
+    events = dict(poller.poll(UDP_TIMEOUT))
+    if sock.fileno() in events:
+        msg, address = sock.recvfrom(UDP_SIZE)
+        logger.debug('Received request from %s:%d', *address)
+        return Maybe.of((address, decode(msg)))
+    return Maybe.of(None)
 
 
 @curry
-def wait(size, poller, s):
+def send(address, sock, data):
     '''
-    Listens for activity on the UDP socket then returns the message
-    and the source of such activity.
-    @sig wait :: Int -> Poller -> UDPSocket -> Task Str (Str, (Str, Int))
+    Sends a encoded data over the given address.
+    @sig send :: (Str, Int) -> Socket -> Dict
     '''
-    def listen(reject, resolve):
-        events = dict(poller.poll(POLL_TIMEOUT))
-        if s.fileno() in events:
-            resolve(s.recvfrom(size))
-        else:
-            reject('No activity noticed')
-    return Task(listen)
+    logger.debug('Sending to %s:%d', *address)
+    sock.sendto(encode(data), 0, address)

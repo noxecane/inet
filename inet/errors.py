@@ -1,9 +1,16 @@
 
-class ConnectionError(Exception):
 
-    def __init__self(self, message, address):
-        super().__init__(message.format(address=address))
+class MethodNotFound(Exception):
+    pass
+
+
+class ConnectionTimeout(Exception):
+    pass
 
 
 class RegisterationError(Exception):
     pass
+
+
+def exception(name):
+    return type(name, (Exception, ), {})

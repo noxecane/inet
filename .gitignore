@@ -19,5 +19,5 @@ dist/
 build/
 
 # Experiments
-experiments/
+inet/experiments/
 
