@@ -8,7 +8,7 @@ from pyfunk.combinators import curry, compose
 def __as_request(uuid, data):
     return Request(origin=uuid, data=data)
 
-__create_request = curry(compose(encode, from_type, __as_request))
+__create_request = compose(encode, from_type, __as_request)
 __xrecv = compose(to_response, decode, sockets.recv)
 
 
@@ -29,7 +29,7 @@ def recv(sock):
     server it's receiving from.
     '''
     response = __xrecv(sock)
-    if response.state == 'error':
+    if response.status == 'error':
         exc = exception(response.data['name'])
         raise exc(response.data['message'])
     return response.data

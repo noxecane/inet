@@ -11,7 +11,7 @@ def __raise_invalid_type(fn):
     @wraps(fn)
     def decorated(msg):
         try:
-            fn(msg)
+            return fn(msg)
         except KeyError:
             raise InvalidType('The type passed in is invalid')
     return decorated
@@ -46,4 +46,4 @@ def to_contact(msg):
 
 
 def from_type(mtype):
-    return mtype._as_dict()
+    return dict(mtype._asdict())
