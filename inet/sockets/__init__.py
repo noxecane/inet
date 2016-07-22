@@ -1,8 +1,7 @@
 import logging
 import zmq.green as zmq
 from inet.errors import ConnectionTimeout
-from inet.sockets.message import encode, decode
-from pyfunk.combinators import curry
+from pyfunk.combinators import curry, compose
 
 logger = logging.getLogger('inet.sockets')
 REQ_TIMEOUT = 3000
@@ -17,13 +16,32 @@ def create(context, stype):
     return context.socket(stype)
 
 
-def destroy(sock):
+def nolinger(sock):
     '''
-    Clears the socket queue then closes the socket. Use this when the socket
-    is no longer needed at all.
-    @sig destroy :: Socket -> Socket
+    Sets the linger socket option to 0. This way calls to close
+    and disconnect work as expected, immediately
+    @sig nolinger :: Socket -> Socket
     '''
     sock.setsockopt(zmq.LINGER, 0)
+    return sock
+
+__create_brutal = compose(nolinger, create)
+
+
+def create_brutal(context, stype):
+    '''
+    Creates a socket that can close/disconnect immediately. Basically
+    creates a socket with linger option at 0.
+    @sig create_brutal :: ZMQContext -> Int -> Socket
+    '''
+    return __create_brutal(context, stype)
+
+
+def close(sock):
+    '''
+    Calls socket.close
+    @sig close :: Socket -> Socket
+    '''
     sock.close()
     return sock
 
@@ -41,7 +59,7 @@ def connect(address, sock):
 
 
 @curry
-def diconnect(address, sock):
+def disconnect(address, sock):
     '''
     Composable version of ZMQ's disconnect
     @sig disconnect :: Address -> Socket -> Socket
@@ -100,21 +118,21 @@ def unpollable(poller, sock):
 def send(sock, msg):
     '''
     Encodes and sends a message. It's basically a proxy to zeromq_send
-    with encoding on-top
-    @sig send :: Socket -> Dict -> Socket
+    with encoding on-top. It only works with zeromq sockets
+    @sig send :: Socket -> Byte -> Byte
     '''
     logger.debug('Sending message out to connected peer')
-    sock.send(encode(msg))
+    sock.send(msg)
+    return msg
 
 
-@curry
-def recv(sock, address):
+def recv(sock):
     '''
     Extends the zmq_recv function by polling within a specified
-    timeout.
-    @sig recv :: Str -> Socket -> Dict
+    timeout. Like send it only works with zeromq sockets
+    @sig recv :: Socket -> Byte
     '''
     if sock.poll(REQ_TIMEOUT) == 1:
-        logger.debug('Received response from peer at %s', address)
-        return decode(sock.recv())
-    raise ConnectionTimeout('Connection to server at %s as timedout' % address)
+        logger.debug('Received response from peer')
+        return sock.recv()
+    raise ConnectionTimeout('Connection to server timedout')

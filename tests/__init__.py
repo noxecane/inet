@@ -1,4 +1,4 @@
-from inet.sockets import destroy, create, bind
+from inet.sockets import close, create_brutal, bind
 from unittest import TestCase
 import zmq.green as zmq
 
@@ -16,26 +16,21 @@ class InetTestCase(TestCase):
     def tearDown(self):
         while self.sockets:
             s = self.sockets.pop()
-            destroy(s).unsafeIO()
+            if not s.closed:
+                close(s)
 
-    def socket(self, sockettype):
-        s = create(self.context, sockettype)
+    def assertFn(self, fn):
+        def function(v):
+            assert not fn(v)
+        return function
+
+    def create(self, sockettype):
+        s = create_brutal(self.context, sockettype)
         self.sockets.append(s)
         return s
 
     def server(self, addr, socket, req=1):
-        bind(addr, socket).unsafeIO()
+        bind(addr, socket)
         while req != 0:
             socket.send(socket.recv())
             req -= 1
-
-    def assertFn(self, f):
-        def fn(res):
-            assert f(res)
-        return fn
-
-    def assertError(self, address):
-        def fn(err):
-            print('Error:', err.format(address=address))
-            assert False
-        return fn

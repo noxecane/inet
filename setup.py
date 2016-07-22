@@ -2,7 +2,6 @@
 from pip.req import parse_requirements
 from setuptools import setup
 
-
 dependencies = parse_requirements('requirements.txt', session=False)
 reqs = [str(ir.req) for ir in dependencies]
 setup(

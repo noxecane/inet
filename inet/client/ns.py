@@ -1,7 +1,9 @@
 import gevent
 import logging
-from inet.errors import MethodNotFound
 from inet import sockets
+from inet.errors import MethodNotFound
+from inet.messaging.codec import decode
+from inet.messaging.types import to_contact
 from inet.sockets import udp
 from inet.utils import breakable_loop
 from pyfunk.combinators import curry, compose
@@ -11,60 +13,58 @@ logger = logging.getLogger('inet.client.ns')
 NS_PORT = 9999
 
 
+def __listen(host, sock):
+    return sockets.bind((host, NS_PORT), sock)
+
+
 @curry
-def get_address(amap, path):
-    '''
-    Get the address of a particular path. If the path is not
-    offered by any node a MethodNotFound error will be thrown
-    @sig get_address :: Str -> Str
-    '''
+def __recvFn(poller, sock):
+    return lambda: udp.recv(poller, sock)
+
+
+def __setup_receiver(host):
+    return __listen(host, __create_receiver())
+
+
+def __remove_address(response):
+    _, contact = response
+    return contact
+
+
+@curry
+def __get_address(servicebook, path):
     try:
-        return amap[path]
+        return servicebook[path]
     except KeyError:
         raise MethodNotFound('The given path "%s" was not found' % path)
 
 
 @curry
-def update_amap(amap, broadcast):
-    '''
-    Updates mapping for service names to addresses with a service
-    broadcast
-    @sig update_amap :: Dict -> Dict -> _
-    '''
-    services, address = broadcast['services'], broadcast['address']
+def __update_book(servicebook, contact):
     # use the service paths as keys
-    logger.debug('Adding services for %s', address)
-    for s in services:
-        amap[s] = address
+    logger.debug('Adding services for %s', contact.address)
+    for s in contact.services:
+        servicebook[s] = contact.address
 
-
-def discard_address(response):
-    '''
-    Removes the address from a UDP response
-    @sig discard_address :: Maybe ((Str, Int), Dict) -> Dict
-    '''
-    _, broadcast = response
-    return broadcast
+__create_receiver = compose(udp.reuse, udp.create)
+__get_response = compose(to_contact, decode, __remove_address)
 
 
 def start_receiver(host):
     '''
     Setups up a gevent greenlet to listen for server broadcasts so as
     to update the nameservice address map. It returns a function for
-    accessing such map.
+    accessing such map. This function will riase a MethodNotFound
+    exception if the service is not in its address book.
     @sig start_receiver :: Str -> (Str -> Str)
     '''
-    amap = {}
-    create_receiver = compose(udp.reuse, udp.create)
-    setup_socket = compose(sockets.bind((host, NS_PORT)), create_receiver)
-    # create socket and make it pollable
-    sock = setup_socket()
-    poller = sockets.pollable(sock)
+    servicebook = {}
+    receiver = __setup_receiver(host)
+    poller = sockets.pollable(receiver)
 
-    # setup the receiver to update the amap
-    recv = compose(fmap(discard_address), lambda: udp.recv(poller, sock))
-    areload = compose(fmap(update_amap(amap)), recv)
-    gevent.spawn(breakable_loop(areload))
+    contact_reload = compose(fmap(__update_book(servicebook)), fmap(__get_response),
+                             __recvFn(poller, receiver))
+    gevent.spawn(breakable_loop(contact_reload))
 
     # return getter function
-    return get_address(amap)
+    return __get_address(servicebook)

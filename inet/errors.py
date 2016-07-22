@@ -1,14 +1,12 @@
-
-
-class MethodNotFound(Exception):
+class MethodNotFound(AttributeError):
     pass
 
 
-class ConnectionTimeout(Exception):
+class ConnectionTimeout(ConnectionError):
     pass
 
 
-class RegisterationError(Exception):
+class InvalidType(TypeError):
     pass
 
 
