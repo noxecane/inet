@@ -5,7 +5,7 @@ from inet.errors import MethodNotFound
 from inet.messaging.codec import decode
 from inet.messaging.types import to_contact
 from inet.sockets import udp
-from inet.utils import breakable_loop
+from inet.utils import breakable_loop, once
 from pyfunk.combinators import curry, compose
 from pyfunk.monads import fmap
 
@@ -50,6 +50,7 @@ __create_receiver = compose(udp.reuse, udp.create)
 __get_response = compose(to_contact, decode, __remove_address)
 
 
+@once
 def start_receiver(host):
     '''
     Setups up a gevent greenlet to listen for server broadcasts so as

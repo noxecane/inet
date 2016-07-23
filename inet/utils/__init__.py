@@ -10,3 +10,17 @@ def breakable_loop(fn):  # noqa
             except KeyboardInterrupt:
                 break
     return loop
+
+
+def once(fn):
+    called = False
+    result = None
+
+    @wraps(fn)
+    def called_once(*args, **kwargs):
+        if not called:
+            nonlocal called, result
+            called = True
+            result = fn(*args, **kwargs)
+        return result
+    return called_once
