@@ -29,7 +29,7 @@ class Root(object):
     '''
     This is an object that represent the root of any path attached
     to it. It is meant to store information for all the possible nodes
-    to be created.
+    to be created. Do note that private properties will not work
     '''
 
     '''

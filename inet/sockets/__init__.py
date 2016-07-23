@@ -54,7 +54,7 @@ def connect(address, sock):
     '''
     sock.connect(address)
     add_str = address if isinstance(address, str) else '%s:%d' % address
-    logger.debug('Connected succsessfully from %s', add_str)
+    logger.debug('Connecting to  %s......', add_str)
     return sock
 
 
@@ -66,7 +66,7 @@ def disconnect(address, sock):
     '''
     sock.disconnect(address)
     add_str = address if isinstance(address, str) else '%s:%d' % address
-    logger.debug('Disconnected succsessfully from %s', add_str)
+    logger.debug('Disconnected from %s....', add_str)
     return sock
 
 
