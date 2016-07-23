@@ -1,5 +1,6 @@
 import gevent
 import json
+import pytest
 import uuid
 import zmq.green as zmq
 from inet.client import backend
@@ -62,3 +63,17 @@ class ClientBackendTestCase(InetTestCase):
         backend.send(uid.hex, cl, data).decode('utf8')
         respdata = backend.recv(cl)
         assert data == respdata
+
+    def test_recv_failed(self):
+        cl = self.create(zmq.REQ)
+        sv = self.create(zmq.REP)
+
+        connect(client, cl)
+        gevent.spawn(self.server, server, sv, 'error')
+
+        uid = uuid.uuid4()
+        data = dict(name='Arewa', message='Hello world')
+
+        backend.send(uid.hex, cl, data).decode('utf8')
+        with pytest.raises(Exception):
+            backend.recv(cl)
