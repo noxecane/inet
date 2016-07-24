@@ -12,11 +12,15 @@ RECV_HOST = ''
 class InetPath(Path):
 
     def __call__(self, data):
+        sock = self.root.new_socket()
         addr = self.root.get_address(self.path)
-        sockets.connect(addr, self.root.socket)
-        self.root.send(data)
-        result = self.root.recv()
-        sockets.disconnect(addr, self.root.socket)
+
+        sockets.connect(addr, sock)
+        self.root.send(sock, data)
+        result = backend.recv(sock)
+
+        sockets.disconnect(addr, sock)
+        sockets.close(sock)
         return result
 
 
@@ -26,8 +30,7 @@ class InetClient(Root):
 
     def __init__(self, name, context):
         super().__init__(name)
-        self.socket = sockets.create_brutal(context, zmq.REQ)
+        self.new_socket = lambda: sockets.create_brutal(context, zmq.REQ)
         self.uuid = uuid.uuid4().hex
         self.get_address = ns.start_receiver(RECV_HOST)
-        self.send = backend.send(self.uuid, self.socket)
-        self.recv = lambda: backend.recv(self.socket)
+        self.send = backend.send(self.uuid)
