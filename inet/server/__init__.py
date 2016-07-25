@@ -1,0 +1,2 @@
+def register(mod):
+    pass

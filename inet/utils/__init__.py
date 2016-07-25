@@ -1,5 +1,5 @@
 from functools import wraps
-
+import gipc
 
 def breakable_loop(fn):  # noqa
     @wraps(fn)
@@ -24,3 +24,8 @@ def once(fn):
             result = fn(*args, **kwargs)
         return result
     return called_once
+
+
+def fork(fn, *args, daemon=False):
+    with gipc.pipe():
+        gipc.start_process(target=fn, args=args, daemon=daemon)
