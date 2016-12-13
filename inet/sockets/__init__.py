@@ -1,10 +1,13 @@
 import logging
 import zmq.green as zmq
-from inet.errors import ConnectionTimeout
 from pyfunk.combinators import curry, compose
 
 logger = logging.getLogger('inet.sockets')
 REQ_TIMEOUT = 3000
+
+
+class ConnectionTimeout(ConnectionError):
+    pass
 
 
 @curry

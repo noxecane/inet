@@ -1,7 +1,7 @@
 import logging
 import socket
-from pyfunk.combinators import curry
-from pyfunk.monads import Maybe
+from pyfunk import combinators as cm
+from pyfunk.monads.maybe import Maybe
 
 logger = logging.getLogger('inet.sockets.udp')
 UDP_TIMEOUT = 3000
@@ -34,7 +34,30 @@ def reuse(sock):
     return sock
 
 
-@curry
+__broadcaster = cm.compose(broadcast, reuse, create)
+
+
+def broadcaster():
+    '''
+    Creates a UDP socket capable of broadcasting messages on an
+    already bound address.
+    @sig broadcaster :: _ -> UDPSocket
+    '''
+    return __broadcaster()
+
+__receiver = cm.compose(reuse, create)
+
+
+def receiver():
+    '''
+    Creates a UDP socket capable of receiving messages on an
+    already bound address.
+    @sig receiver :: _ -> UDPSocket
+    '''
+    return __receiver()
+
+
+@cm.curry
 def recv(poller, sock):
     '''
     A recv with the ability to timeout. It uses UDP_TIMEOUT
@@ -49,7 +72,7 @@ def recv(poller, sock):
     return Maybe.of(None)
 
 
-@curry
+@cm.curry
 def send(address, sock, data):
     '''
     Sends a encoded data over the given address.

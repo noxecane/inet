@@ -1,4 +1,4 @@
-from inet.utils import once
+from inet.utils import decorators as decor
 
 x = 2
 
@@ -10,6 +10,6 @@ def fn():
 
 
 def test_once():
-    f = once(fn)
+    f = decor.once(fn)
     assert f() == 6
     assert f() == 6

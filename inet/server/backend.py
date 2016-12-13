@@ -1,30 +1,28 @@
+import socket
 from inet import sockets
 from inet.messaging.codec import encode, decode
-from inet.messaging.types import Response, from_type, to_request
+from inet.messaging.types import from_type, to_request
 from pyfunk.combinators import curry, compose
 
 
-def __as_response(uuid, req, status, data):
-    return Response(origin=uuid, source=req.origin, status=status, data=data)
-
-__create_respone = compose(encode, from_type, __as_response)
-__xrecv = compose(to_request, decode, sockets.recv)
-
-
-@curry
-def send(uuid, sock, req, status, data):
+def get_address():
     '''
-    Envelopes and encodes the data as a response before sending
-    it using zeromq
-    @sig send :: Str -> Socket -> Request -> Status -> Dict -> Byte
+    Returns the IP of the host. It's correctness is determined by the prescence
+    of internet access.
+    @sig get_address :: _ -> Str
     '''
-    return sockets.send(sock, __create_respone(uuid, req, status, data))
+    try:
+        ip, _ = __precise_address()
+        return ip
+    except socket.gaierror:
+        return __lucky_address()
 
 
-def recv(sock):
-    '''
-    Removes request data from the request envelope and decodes
-    it in the process.
-    @sig recv :: Socket -> Dict
-    '''
-    return __xrecv(sock).data
+def __precise_address():
+    sock = socket.socket()
+    sock.connect(('www.google.com', 80))
+    return sock.getsockname()
+
+
+def __lucky_address():
+    return socket.gethostbyname(socket.gethostname())

@@ -2,14 +2,14 @@ import gevent
 import zmq.green as zmq
 
 from inet import sockets
-from inet.errors import ConnectionTimeout
-from tests import InetTestCase
+from inet.sockets import ConnectionTimeout
+from tests import Sockets
 
 server = 'tcp://*:9999'
 client = 'tcp://localhost:9999'
 
 
-class TestSockets(InetTestCase):
+class TestSockets(Sockets):
 
     def test_send(self):
         cl = self.create(zmq.REQ)

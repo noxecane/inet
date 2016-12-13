@@ -23,5 +23,8 @@ inet/experiments/
 # Emacs autosave
 \#*\#
 \#*.py
+*\~
 .desktop
 .projectile
+.emacs.desktop
+.emacs.desktop.lock
